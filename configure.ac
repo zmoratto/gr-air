@@ -19,7 +19,7 @@ dnl  the Free Software Foundation, Inc., 51 Franklin Street,
 dnl  Boston, MA 02110-1301, USA.
 dnl 
 
-AC_INIT(gr-howto-write-a-block,3.2)
+AC_INIT(gr-air,3.2)
 AC_PREREQ(2.57)
 AC_CONFIG_AUX_DIR([.])	
 
@@ -62,7 +62,6 @@ dnl AX_BOOST_WSERIALIZATION
 AC_CONFIG_FILES([\
 	  Makefile \
 	  config/Makefile \
-	  doc/Makefile \
 	  src/Makefile \
 	  src/lib/Makefile \
 	  src/python/Makefile \

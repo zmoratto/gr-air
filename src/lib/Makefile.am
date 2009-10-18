@@ -103,8 +103,6 @@ swiginclude_HEADERS = 			\
 	$(LOCAL_IFILES)
 
 
-MOSTLYCLEANFILES = $(BUILT_SOURCES) *.pyc *~ *.tmp
-
 # Don't distribute output of swig
 dist-hook:
 	@for file in $(BUILT_SOURCES); do echo $(RM) $(distdir)/$$file; done

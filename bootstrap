@@ -20,7 +20,7 @@
 # Boston, MA 02110-1301, USA.
 
 
-rm -fr config.cache autom4te*.cache
+rm -fr config.cache autom4te*.cache aclocal.m4
 
 aclocal -I config
 autoconf

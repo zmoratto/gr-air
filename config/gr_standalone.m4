@@ -26,7 +26,7 @@ dnl
 dnl N.B., this is an m4_define because if it were an AC_DEFUN it would
 dnl get called too late to be useful.
 
-m4_define([GR_STANDALONE],
+AC_DEFUN([GR_STANDALONE],
 [
   AC_CONFIG_SRCDIR([config/gr_standalone.m4])
   AM_CONFIG_HEADER(config.h)
