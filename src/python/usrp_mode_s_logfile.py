@@ -7,7 +7,7 @@ from optparse import OptionParser
 import time, os, sys
 from string import split, join
 from usrpm import usrp_dbid
-import ppm_demod
+from ppm_demod import ppm_demod
 
 """
 This example application demonstrates receiving and demodulating the
@@ -46,6 +46,7 @@ def pick_subdevice(u):
 class app_flow_graph(gr.top_block):
     def __init__(self, options, args, queue):
         gr.top_block.__init__(self)
+
         self.options = options
         self.args = args
 
@@ -57,19 +58,18 @@ class app_flow_graph(gr.top_block):
         self.subdev = usrp.selected_subdev(self.u, self.options.rx_subdev_spec)
 
         if options.gain is None:
+            # Select a gain in the middle of the range
             g = self.subdev.gain_range()
             options.gain = float(g[0]+g[1])/2
+
         self.subdev.set_gain(options.gain)
 
         r = self.u.tune(0, self.subdev, options.freq)
         if_rate = self.u.adc_freq() / self.u.decim_rate()
-        pass_all = 0
-        if options.output_all :
-            pass_all = 1
-            MODE_S = ppm_demod.ppm_demod(if_rate, options.thresh)
-        FORMAT = air.ms_fmt_log(pass_all, queue)
-
-        self.connect(self.u, MODE_S, FORMAT)
+            
+        self.mode_s = ppm_demod(if_rate, options.thresh)
+        self.format = air.ms_fmt_log(pass_all, queue)
+        self.connect(self.u, self.mode_s, self.format)
 
 def main():
     usage="%prog: [options] output_filename"
@@ -84,12 +84,12 @@ def main():
                       help="set fgpa decimation rate to DECIM [default=%default]")
     parser.add_option("-T", "--thresh", type="int", default=10,
                       help="set valid pulse threshold to THRESH [default=%default]")
-    parser.add_option("-a","--output-all", action="store_true", default=False,
-                          help="output all frames")
     (options, args) = parser.parse_args()
+
     if len(args) != 1:
         parser.print_help()
         raise SystemExit, 1
+
     filename = args[0]
 
     options.freq *= 1e6
@@ -97,7 +97,6 @@ def main():
     queue = gr.msg_queue()
 
     fg = app_flow_graph(options, args, queue)
-    print "Running"
     try:
         fileHandle = open(filename, "w")
         fg.start()

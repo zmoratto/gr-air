@@ -20,9 +20,9 @@
 #
 from gnuradio import gr, gru, air
 
-risetime_threshold_db = 48.0   # The minimum change for pulse leading edge in dB per bit time (Assume value for 8 MHz BW)
-data_rate = 1000000.0        # Data rate in bits per second
-chip_rate = data_rate*2.0     # Two chips to a bit so rate is double
+risetime_threshold_db = 48.0    # The minimum change for pulse leading edge in dB per bit time (Assume value for 8 MHz BW)
+data_rate = 1000000.0           # Data rate in bits per second
+chip_rate = data_rate*2.0       # Two chips to a bit so rate is double
 
 class ppm_demod(gr.hier_block2):
     """
@@ -79,6 +79,7 @@ class ppm_demod(gr.hier_block2):
         self.EC    =  air.ms_ec_brute()
 
         if channel_rate != chan_rate:
+            # Resample the stream first
             self.connect(self, self.RESAMP, self.MAG, self.DETECT)
         else: 
             self.connect(self, self.MAG, self.DETECT)
