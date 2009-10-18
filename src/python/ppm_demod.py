@@ -18,11 +18,13 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 #
+from gnuradio import gr, gru, air
 
-from gnuradio import gr, gru, optfir, air
-from math import pi
+risetime_threshold_db = 48.0   # The minimum change for pulse leading edge in dB per bit time (Assume value for 8 MHz BW)
+data_rate = 1000000.0        # Data rate in bits per second
+chip_rate = data_rate*2.0     # Two chips to a bit so rate is double
 
-class ppm_demod:
+class ppm_demod(gr.hier_block2):
     """
     Mode S protocol demodulation block.
 
@@ -39,23 +41,7 @@ class ppm_demod:
     BIT      - Decodes the Pulse Position Modulation (PPM) to Mode S Data Frames
     PARITY   - Parity Checking (CRC)
     EC       - Brute Force Error Correction
-
-    ---
-
-    @param fg: flowgraph
-    @type fg: flow graph
-    @param channel_rate:  incoming sample rate of the baseband channel
-    @type channel_rate: integer
-    @parm theshold: minumum level for a valid pulse
-    @type theshold: integer
     """
-from gnuradio import gr, gru
-
-risetime_threshold_db = 48.0   # The minimum change for pulse leading edge in dB per bit time (Assume value for 8 MHz BW)
-data_rate = 1000000.0        # Data rate in bits per second
-chip_rate = data_rate*2.0     # Two chips to a bit so rate is double
-
-class ppm_demod(gr.hier_block2):
     def __init__(self, channel_rate, threshold):
         gr.hier_block2.__init__(self, "ppm_demod",
                               gr.io_signature(1, 1, gr.sizeof_gr_complex),
@@ -77,12 +63,13 @@ class ppm_demod(gr.hier_block2):
 
         # Calculate the leading edge threshold per sample time
         leading_edge = risetime_threshold_db/(chan_rate/data_rate)
+
         # Calculate the number of following samples above threshold needed to make a sample a valid pulse position
         valid_pulse_position = 2
         if chan_rate == 10000000:
             valid_pulse_position = 3
 
-        # Demodule AM with classic sqrt (I*I + Q*Q)
+        # Demodulate AM with classic sqrt (I*I + Q*Q)
         self.MAG = gr.complex_to_mag()
         self.DETECT = air.ms_pulse_detect(leading_edge, threshold, valid_pulse_position) # Attack, Threshold, Pulsewidth
         self.SYNC = air.ms_preamble(chan_rate)
@@ -93,8 +80,9 @@ class ppm_demod(gr.hier_block2):
 
         if channel_rate != chan_rate:
             self.connect(self, self.RESAMP, self.MAG, self.DETECT)
-        else : 
+        else: 
             self.connect(self, self.MAG, self.DETECT)
+
         self.connect((self.DETECT, 0), (self.SYNC, 0))
         self.connect((self.DETECT, 1), (self.SYNC, 1))
         self.connect((self.SYNC, 0), (self.FRAME, 0))
