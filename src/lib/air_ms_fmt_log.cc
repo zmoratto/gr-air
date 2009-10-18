@@ -73,11 +73,11 @@ air_ms_fmt_log_sptr air_make_ms_fmt_log(int pass_all, gr_msg_queue_sptr queue)
 
 air_ms_fmt_log::air_ms_fmt_log(int pass_all, gr_msg_queue_sptr queue) :
     gr_sync_block("ms_fmt_log",
-	gr_make_io_signature(1, 1, sizeof(ms_frame_raw)),
-	gr_make_io_signature(0, 0, 0)),
+    gr_make_io_signature(1, 1, sizeof(ms_frame_raw)),
+    gr_make_io_signature(0, 0, 0)),
         d_queue(queue), d_pass_all(pass_all)
 {
-	d_count = 0;
+    d_count = 0;
 }
 
 int air_ms_fmt_log::work(int noutput_items,
@@ -90,11 +90,11 @@ int air_ms_fmt_log::work(int noutput_items,
     for(i = 0;i < noutput_items; i++)
     {
         // If pass all or data good then send it out otherwise move on
-	if(d_pass_all || (data_in[i].ec_quality() & (ms_frame_raw::crc_ok | ms_frame_raw::eq_ec_corrected)))
-	{
-		format_data(data_in[i]);
-		d_count++;
-	}
+        if(d_pass_all || (data_in[i].ec_quality() & (ms_frame_raw::crc_ok | ms_frame_raw::eq_ec_corrected)))
+        {
+            format_data(data_in[i]);
+            d_count++;
+        }
     }
 
     return i;
@@ -103,74 +103,83 @@ int air_ms_fmt_log::work(int noutput_items,
 
 void air_ms_fmt_log::format_data(ms_frame_raw &frame)
 {
-	int i;
-	int typecode = 0;
-	int data = 0;
-	int pi = 0;
-	for (i = 0; i < 5; i++)
-	{
-	   typecode = (typecode << 1) + frame.bit(i);
-	   data = (data << 1) + frame.bit(i);
-	}
-	for (i = 5; i < 32; i++)
-	{
-	    data = (data << 1) + frame.bit(i);
-	}
-	d_payload.str("");
-	d_payload.width(8);
-	d_payload.fill('0');
-	d_payload << std::hex <<  data << FIELD_DELIM;
-	if(frame.length() >= MS_LONG_FRAME_LENGTH)
-	{
-		data = 0;
-		d_payload.width(7);
-		for (i = 32; i < 60; i++)
-		{
-	 		data = (data << 1) + frame.bit(i);
-		}
-		d_payload << data;
-		data = 0;
-		d_payload.width(7);
-		for (i = 60; i < 88; i++)
-		{
-	 		data = (data << 1) + frame.bit(i);
-		}
-		d_payload << data << FIELD_DELIM;
-		d_payload.width(6);
-		for (i = 88; i < MS_LONG_FRAME_LENGTH; i++)
-		{
-	 		pi = (pi << 1) + frame.bit(i);
-		}
-		d_payload << pi << FIELD_DELIM;
-	}
-	else
-	{
-		for (i = 32; i < MS_SHORT_FRAME_LENGTH; i++)
-		{
-	 		pi = (pi << 1) + frame.bit(i);
-		}
-		d_payload << FIELD_DELIM << "             " << FIELD_DELIM;
-		d_payload.width(6);
-		d_payload << pi << FIELD_DELIM;
-	}
-	d_payload.width(7);
-        d_payload.precision(5);
-	d_payload.fill(' ');
-	d_payload << std::dec << frame.reference() << FIELD_DELIM;
-	d_payload.width(8);
-	d_payload.fill('0');
-        d_payload << std::hex << frame.timestamp() << FIELD_DELIM << frame.rx_time() << FIELD_DELIM;
-	d_payload.width(3);
-	d_payload.fill(' ');
-        d_payload << std::dec << frame.lcb_count() << FIELD_DELIM;
-	d_payload.width(8);
-	d_payload.fill('0');
-        d_payload << std::hex << frame.ec_quality() << FIELD_DELIM;
-	d_payload.width(2);
-	d_payload << std::dec << typecode << FIELD_DELIM;
-	d_payload.width(6);
-        d_payload << std::hex << frame.address();
-	gr_message_sptr msg = gr_make_message_from_string(std::string(d_payload.str()));
-	d_queue->handle(msg);
+    int i;
+    int typecode = 0;
+    int data = 0;
+    int pi = 0;
+    for (i = 0; i < 5; i++)
+    {
+       typecode = (typecode << 1) + frame.bit(i);
+       data = (data << 1) + frame.bit(i);
+    }
+    for (i = 5; i < 32; i++)
+    {
+        data = (data << 1) + frame.bit(i);
+    }
+
+    d_payload.str("");
+    d_payload.width(8);
+    d_payload.fill('0');
+    d_payload << std::hex <<  data << FIELD_DELIM;
+
+    if(frame.length() >= MS_LONG_FRAME_LENGTH)
+    {
+        data = 0;
+        d_payload.width(7);
+        for (i = 32; i < 60; i++)
+        {
+             data = (data << 1) + frame.bit(i);
+        }
+        d_payload << data;
+        data = 0;
+        d_payload.width(7);
+        for (i = 60; i < 88; i++)
+        {
+             data = (data << 1) + frame.bit(i);
+        }
+        d_payload << data << FIELD_DELIM;
+        d_payload.width(6);
+        for (i = 88; i < MS_LONG_FRAME_LENGTH; i++)
+        {
+             pi = (pi << 1) + frame.bit(i);
+        }
+        d_payload << pi << FIELD_DELIM;
+    }
+    else
+    {
+        for (i = 32; i < MS_SHORT_FRAME_LENGTH; i++)
+        {
+             pi = (pi << 1) + frame.bit(i);
+        }
+        d_payload << FIELD_DELIM << "             " << FIELD_DELIM;
+        d_payload.width(6);
+        d_payload << pi << FIELD_DELIM;
+    }
+    
+    d_payload.width(7);
+    d_payload.precision(5);
+    d_payload.fill(' ');
+    d_payload << std::dec << frame.reference() << FIELD_DELIM;
+    
+    d_payload.width(8);
+    d_payload.fill('0');
+    d_payload << std::hex << frame.timestamp() << FIELD_DELIM << frame.rx_time() << FIELD_DELIM;
+    
+    d_payload.width(3);
+    d_payload.fill(' ');
+    d_payload << std::dec << frame.lcb_count() << FIELD_DELIM;
+    
+    d_payload.width(8);
+    d_payload.fill('0');
+    d_payload << std::hex << frame.ec_quality() << FIELD_DELIM;
+    
+    d_payload.width(2);
+    d_payload << std::dec << typecode << FIELD_DELIM;
+    
+    d_payload.width(6);
+    d_payload << std::hex << frame.address();
+
+    gr_message_sptr msg = gr_make_message_from_string(std::string(d_payload.str()));
+    d_queue->handle(msg);
 }
 
