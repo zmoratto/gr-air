@@ -14,7 +14,7 @@ that packets are almost invisible on a scope display.
 Files
 -----
 
-usrp_oscope_ms.py	    Display samples, reference level, and sample attributes on a oscilliscope. 
+    usrp_oscope_ms.py	    Display samples, reference level, and sample attributes on a oscilliscope. 
                             (doesn't work with GNU Radio 3.2 yet)
-usrp_mode_s_logfile.py  Dumps raw Mode S frames to a log file.
-ppm_demod.py		    Mode S Decoding Block
+    usrp_mode_s_logfile.py  Dumps raw Mode S frames to a log file.
+    ppm_demod.py		    Mode S Decoding Block
