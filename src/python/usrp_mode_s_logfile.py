@@ -66,8 +66,13 @@ class app_flow_graph(gr.top_block):
 
         r = self.u.tune(0, self.subdev, options.freq)
         if_rate = self.u.adc_freq() / self.u.decim_rate()
-            
+        
         self.mode_s = ppm_demod(if_rate, options.thresh)
+
+        pass_all = 0
+        if options.output_all:
+            pass_all = 1
+
         self.format = air.ms_fmt_log(pass_all, queue)
         self.connect(self.u, self.mode_s, self.format)
 
@@ -84,6 +89,8 @@ def main():
                       help="set fgpa decimation rate to DECIM [default=%default]")
     parser.add_option("-T", "--thresh", type="int", default=10,
                       help="set valid pulse threshold to THRESH [default=%default]")
+    parser.add_option("-a","--output-all", action="store_true", default=False,
+                      help="output all frames, not just valid")
     (options, args) = parser.parse_args()
 
     if len(args) != 1:
