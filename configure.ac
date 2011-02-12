@@ -22,6 +22,7 @@ dnl
 AC_INIT(gr-air,3.2)
 AC_PREREQ(2.57)
 AC_CONFIG_AUX_DIR([.])	
+AC_CONFIG_MACRO_DIR([config])
 
 dnl This is kind of non-standard, but it sure shortens up this file :-)
 m4_include([config/gr_standalone.m4])
