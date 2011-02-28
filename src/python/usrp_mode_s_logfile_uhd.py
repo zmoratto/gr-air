@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-from gnuradio import gr, gru, usrp, optfir, eng_notation, air
+from gnuradio import gr, gru, optfir, eng_notation, air, uhd
 from gnuradio.eng_option import eng_option
-from grc_gnuradio import usrp as grc_usrp
+#from grc_gnuradio import usrp as grc_usrp
 from optparse import OptionParser
 import time, os, sys
 from string import split, join
-from usrpm import usrp_dbid
+#from usrpm import usrp_dbid
 from ppm_demod import ppm_demod
 
 """
@@ -50,23 +50,34 @@ class app_flow_graph(gr.top_block):
         self.options = options
         self.args = args
 
-        self.u = usrp.source_c(which=0, decim_rate=self.options.decim)
-        if self.options.rx_subdev_spec is None:
-            self.options.rx_subdev_spec = pick_subdevice(self.u)
+        samp_rate = 10e6
 
-        self.u.set_mux(usrp.determine_rx_mux_value(self.u, self.options.rx_subdev_spec))
-        self.subdev = usrp.selected_subdev(self.u, self.options.rx_subdev_spec)
+        self.u = uhd.usrp_source(
+            device_addr="",
+            io_type=uhd.io_type.COMPLEX_FLOAT32,
+            num_channels=1,
+            )
+        self.u.set_samp_rate(samp_rate)
+        self.u.set_antenna("RX2", 0)
+
+        #self.u = usrp.source_c(which=0, decim_rate=self.options.decim)
+        #if self.options.rx_subdev_spec is None:
+        #    self.options.rx_subdev_spec = pick_subdevice(self.u)
+
+        #self.subdev = usrp.selected_subdev(self.u, self.options.rx_subdev_spec)
 
         if options.gain is None:
             # Select a gain in the middle of the range
-            g = self.subdev.gain_range()
-            options.gain = float(g[0]+g[1])/2
+            g = self.u.get_gain_range()
+            options.gain = float(g.start()+g.stop())/2
 
-        self.subdev.set_gain(options.gain)
+        self.u.set_gain(options.gain)
+        print "Gain set to: ", self.u.get_gain()
+        self.u.set_bandwidth(100000)
+        self.u.set_center_freq(options.freq,0)
+        #if_rate = self.u.adc_freq() / self.u.decim_rate()
+        if_rate = self.u.get_samp_rate()
 
-        r = self.u.tune(0, self.subdev, options.freq)
-        if_rate = self.u.adc_freq() / self.u.decim_rate()
-        
         self.mode_s = ppm_demod(if_rate, options.thresh)
 
         pass_all = 0
